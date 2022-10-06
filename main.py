@@ -12,6 +12,10 @@ class Bot:
         self.MESSAGE = data["message"]
         self.KEYWORD = data["keyword"]
         self.client = requests.Session()
+        self.headers = {
+            "origin": self.MAIN_URL,
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
+        }
         
     def start(self):
         self.client = requests.Session()
@@ -21,13 +25,10 @@ class Bot:
         login_url = self.MAIN_URL+'/login'
 
         login_data = dict(email=self.EMAIL, password=self.PASSWORD, csrfmiddlewaretoken=csrftoken)
-        headers = {
-            "origin": self.MAIN_URL,
-            "referer": login_url,
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
-        }
 
-        response = self.client.post(login_url, data=login_data, headers=headers)
+        self.headers["referer"] = login_url
+
+        response = self.client.post(login_url, data=login_data, headers=self.headers)
 
         if response.status_code != 200:
             print("Something went wrong with login")
@@ -68,13 +69,9 @@ class Bot:
 
         csrftoken = job_pageSoup.find("input", {"name": "csrfmiddlewaretoken"}).get("value")
         application_data = dict(message=self.MESSAGE, cv_url=self.CV_URL, csrfmiddlewaretoken=csrftoken)
-        headers = {
-            "origin": "https://djinni.co",
-            "referer": self.MAIN_URL + job_link,
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
-        }
+        self.headers["referer"] = self.MAIN_URL + job_link
         
-        response = self.client.post(self.MAIN_URL + job_link, data=application_data, headers=headers)
+        response = self.client.post(self.MAIN_URL + job_link, data=application_data, headers=self.headers)
         print(response)
 
 with open('config.json') as config_file:
